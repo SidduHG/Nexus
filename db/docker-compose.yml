@@ -1,0 +1,70 @@
+# Nexus data layer — Postgres (relational + pgvector + AGE), Redis, optional MinIO.
+#
+# Usage (from the db/ directory):
+#   docker compose up -d                      # postgres + redis
+#   docker compose --profile artifacts up -d  # ... + MinIO for large artifacts (v0.2+)
+#
+# Apply migrations after first start:
+#   ./apply-migrations.sh          (Git Bash / WSL)
+#   pwsh ./apply-migrations.ps1    (PowerShell)
+#
+# Temporal (v0.2+) ships its own compose stack and its own Postgres database;
+# run it separately (https://github.com/temporalio/docker-compose). Do NOT
+# point Temporal at the nexus database.
+
+services:
+  postgres:
+    build: ./postgres
+    image: nexus-postgres:16
+    container_name: nexus-postgres
+    command: postgres -c shared_preload_libraries=age
+    environment:
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: ${NEXUS_DB_PASSWORD:-nexus_dev_only}
+      POSTGRES_DB: nexus
+    ports:
+      - "5432:5432"
+    volumes:
+      - nexus_pgdata:/var/lib/postgresql/data
+      - ./migrations:/migrations:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nexus -d nexus"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: nexus-redis
+    command: redis-server --appendonly yes
+    ports:
+      - "6379:6379"
+    volumes:
+      - nexus_redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Optional: large artifacts (raw agent logs, transcripts, voice notes).
+  # v0.1 stores artifacts inline in Postgres; enable this profile when
+  # artifacts regularly exceed ~1 MB (see docs/database-architecture.md §7).
+  minio:
+    image: minio/minio:latest
+    container_name: nexus-minio
+    profiles: ["artifacts"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: nexus
+      MINIO_ROOT_PASSWORD: ${NEXUS_MINIO_PASSWORD:-nexus_dev_only}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - nexus_miniodata:/data
+
+volumes:
+  nexus_pgdata:
+  nexus_redisdata:
+  nexus_miniodata:

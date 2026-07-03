@@ -80,7 +80,7 @@ This is the leap from "does what I assign" to "notices and acts." A small rules 
 ## Not in this version (deferred to v0.4)
 
 - No Personal Mode yet — still all Developer side.
-- No cost/rate governor or automatic local-fallback ladder.
+- Only the *minimal* quota governor from v0.2 — the full ladder (forecasting, "≈3 tasks left" surfacing) is v0.4.
 - No eval/regression harness (you have tracing, not scored replays yet).
 - No voice, no privacy firewall, no "two-key" for destructive ops.
 
@@ -88,12 +88,43 @@ This is the leap from "does what I assign" to "notices and acts." A small rules 
 
 ## Rough order of work
 
-1. Build the `tree-sitter` parsing pipeline → store nodes/edges in `Apache AGE`.
-2. Add `pgvector` embeddings for code chunks; wire up hybrid retrieval (vector recall → graph expand).
+1. Apply `db/migrations/0003_repo_kg_memory.sql`; build the `tree-sitter` parsing pipeline → relational mirror (`repo_kg.*`) → derived `Apache AGE` graph.
+2. Add `pgvector` embeddings for code chunks (`repo_kg.code_chunks`); wire up hybrid retrieval (vector recall → graph expand).
 3. Expose repo-graph tools (`where_is`, `why_does_this_test_fail`, `risky_files`) to the agent.
-4. Add explicit + episodic **memory** with user controls.
+4. Add explicit + episodic **memory** (`memory.facts`, `memory.episodes`) with user controls.
 5. Add the **independent reviewer** step (enforce different model than writer).
-6. Add the **trigger engine** (GitHub CI-failure webhook → overnight autoplan).
-7. Wire `Langfuse` tracing through every step.
+6. Add the **trigger engine** (`ops.triggers` + GitHub CI-failure webhook → overnight autoplan).
+7. Wire `Langfuse` tracing through every step; every tool call also lands in `audit.log`.
 
 **Definition of done:** ask "why does this test fail?" and get a real traced answer; CI fails overnight and a fix plan is waiting by morning, reviewed by a second model, without you queuing anything.
+
+---
+
+## Build Spec (AI-agent-ready)
+
+Schema for this version: `db/migrations/0003_repo_kg_memory.sql`. Key architectural rule (full rationale in `docs/database-architecture.md` §6): **the relational mirror tables are the source of truth; the AGE graph is a rebuildable derived index** (nodes carry `pg_id` = mirror UUID). Ship `rebuild_graph(repo_id)` from day one.
+
+**Indexing pipeline (idempotent, incremental):**
+1. Walk the repo; skip files whose `content_sha` matches `repo_kg.files` (XXH3 hash).
+2. Changed files → tree-sitter parse → upsert `repo_kg.symbols` (delete symbols of removed spans; soft-delete removed files).
+3. Changed symbols → re-chunk → embed via local `nomic-embed-text` → upsert `repo_kg.code_chunks`.
+4. Emit graph deltas into AGE: `CONTAINS`/`CALLS`/`IMPORTS`/`INHERITS`/`TESTS` edges.
+5. `git log` since last indexed commit → `repo_kg.commits` / `commit_files` + `TOUCHED`/`AUTHORED` edges.
+Triggered by: post-run (after a Nexus run merges), a file watcher on registered `local_path`s, and a nightly full-verify pass.
+
+**Repo-graph tools (exposed to agents via MCP):** `where_is(symbol)`, `explain_repo()`, `impact_of_change(symbol, depth≤3)`, `test_to_code(test)`, `why_does_this_test_fail(test, trace)`, `risky_files()`. `risky_files` score = f(call-graph fan-in, change frequency from `commit_files`, test-coverage gap, distinct author count) — weights configurable, output always includes the *why*.
+
+**Hybrid retrieval order (fixed):** pgvector top-k on `code_chunks` → map to `symbol_id` → AGE expand callers/callees/tests (depth ≤ 3) → rerank by (similarity × graph proximity) → return ≤ `NEXUS_CONTEXT_TOP_K` (default 12) chunks. Token discipline: the planner receives retrieved context, never raw file dumps.
+
+**Reviewer rule (hard):** `reviewer_brain != writer_brain` — enforced in the workflow, not by convention. Reviewer is read-only (no Write/Edit tools) and returns strict JSON `{verdict: approve|block, findings[]}`; `block` loops back to the writer with findings (counts against the same retry cap).
+
+**Trigger engine:** definitions in `ops.triggers.definition` (the YAML DSL from `Research.md` §9, stored parsed). Inbound events (GitHub webhook receiver, cron scanner) → match enabled triggers → dedup via Redis `nexus:dedup:*` + unique `(trigger_id, dedup_key)` in `ops.trigger_firings` → create a `core.tasks` row → normal v0.2 workflow (including approval gates — a trigger can *start* work, never *ship* it).
+
+**Acceptance criteria (all must pass before v0.4):**
+1. Full index of a real ~50k-LOC repo completes in minutes; a one-file edit re-indexes only that file (verified by `last_indexed_at`).
+2. `impact_of_change` on a hot function returns correct callers/tests, cross-checked by hand, in < 200 ms p95 (else invoke the Kuzu escape hatch).
+3. `why_does_this_test_fail` on a seeded regression names the guilty commit/function in its answer.
+4. Drop the AGE graph → `rebuild_graph` restores identical query results (mirror is truly the source of truth).
+5. "Remember X" → fact retrievable next session; "forget X" → gone from all retrieval immediately, content nulled after grace period.
+6. A forced CI failure at night produces, by morning: a drafted fix plan, second-model review, and a Telegram approval request — with zero manual queuing, and exactly once (dedup proven by replaying the same webhook).
+7. Every agent step of one overnight run is visible as a single connected trace in Langfuse.
