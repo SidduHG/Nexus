@@ -22,8 +22,12 @@ services:
       POSTGRES_USER: nexus
       POSTGRES_PASSWORD: ${NEXUS_DB_PASSWORD:-nexus_dev_only}
       POSTGRES_DB: nexus
+    # Host port 5434 (not 5432): a host-native PostgreSQL owns 5432 on this
+    # dev machine, and Docker Desktop's WSL2 port-proxy had a stale bind on
+    # 5433. Container still listens on 5432; only the host mapping moves.
+    # The app's NEXUS_DB_DSN must therefore target port 5434.
     ports:
-      - "5432:5432"
+      - "5434:5432"
     volumes:
       - nexus_pgdata:/var/lib/postgresql/data
       - ./migrations:/migrations:ro
