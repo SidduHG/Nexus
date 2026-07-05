@@ -1,2 +1,5 @@
 # Planning workbook — kept local, not versioned
 Nexus WBS.xlsx
+
+# nexus-build-loop resumable state — local, per-plan progress
+**/.loop-state.json
