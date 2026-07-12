@@ -8,8 +8,10 @@ from .base import (
     git_head,
     stream_subprocess_json,
 )
+from .claude_cli import ClaudeAdapter
 
 __all__ = [
+    "ClaudeAdapter",
     "CodingAgentAdapter",
     "EventSink",
     "Result",

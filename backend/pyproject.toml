@@ -16,6 +16,7 @@ dev = [
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
+markers = ["integration: hits the real claude/codex CLIs (spends subscription quota)"]
 
 [tool.setuptools.packages.find]
 where = ["."]
