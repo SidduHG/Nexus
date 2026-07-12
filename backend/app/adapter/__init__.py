@@ -9,11 +9,15 @@ from .base import (
     stream_subprocess_json,
 )
 from .claude_cli import ClaudeAdapter
+from .ollama import OllamaAdapter, OllamaClient, OllamaUnavailable
 
 __all__ = [
     "ClaudeAdapter",
     "CodingAgentAdapter",
     "EventSink",
+    "OllamaAdapter",
+    "OllamaClient",
+    "OllamaUnavailable",
     "Result",
     "RunEvent",
     "RunTimeout",
