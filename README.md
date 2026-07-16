@@ -39,3 +39,15 @@ Every design choice should be checked against this principle: single-user assump
 ## Status
 
 Pre-implementation. Documents and data layer are complete; v0.1 build is next.
+
+## Contributing
+
+Nexus is open to contribution. Work is tracked as GitHub Issues grouped by feature and milestone
+(`v0.1`-`v0.4`) — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to pick up an issue, the
+development workflow, and commit/PR conventions, and [`CODE_QUALITY.md`](CODE_QUALITY.md) for the
+review bar. Participation is governed by [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). Only the
+maintainer merges to `main`.
+
+## License
+
+[MIT](LICENSE)

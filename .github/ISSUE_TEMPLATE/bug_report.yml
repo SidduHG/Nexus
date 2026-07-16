@@ -1,0 +1,42 @@
+name: Bug report
+description: Something in an already-built version doesn't behave as specced.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before filing: confirm this is about behavior that's already been built (check the
+        version docs under `context/` and closed issues). If it's a request for new behavior,
+        use the "Feature proposal" template instead.
+  - type: input
+    id: version
+    attributes:
+      label: Which version/area
+      description: e.g. v0.1 backend API, v0.2 approval gates, sandbox image
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What does the relevant spec (`context/nexus-v0.X-*.md`) or Definition of Done say should happen?
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps, commands, or a failing test if you have one.
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: OS, Python/Node version, Docker version, relevant config.
