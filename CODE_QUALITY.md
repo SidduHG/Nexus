@@ -55,8 +55,9 @@ ship as a silent side effect of "getting the feature working":
 
 1. **Official CLIs as subprocesses only** — never reverse-engineer or repoint OAuth tokens, never
    call vendor APIs directly with subscription credentials.
-2. **Sandboxes only** — agents write code inside Docker containers on fresh branches; the owner's
-   real working tree is never touched without explicit approval.
+2. **Isolated by default** — agents write code inside a scratch clone on a fresh branch, using
+   each CLI's own native sandboxing (Claude's sandboxed Bash tool, Codex's `--sandbox
+   workspace-write`); the owner's real working tree is never touched without explicit approval.
 3. **Independent verification** — the model/process that checks work is read-only and, when
    possible, different from the model that wrote it.
 4. **Human approval gates** for anything state-changing or outward-facing (push, PR, send), bound

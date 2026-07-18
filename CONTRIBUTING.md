@@ -63,8 +63,8 @@ focused PR is easier to review than juggling artificial issue boundaries.
    "improve" adjacent code you didn't need to change — see [`AGENTS.md`](AGENTS.md) for the full
    reasoning; it applies to human PRs the same as AI-generated ones.
 4. **Match the invariants.** Every change must preserve the invariants in `README.md`: official
-   CLIs as subprocesses only, sandboxes only, independent verification, human approval gates for
-   state-changing actions, append-only history. A PR that weakens one of these needs explicit
+   CLIs as subprocesses only, isolated by default, independent verification, human approval gates
+   for state-changing actions, append-only history. A PR that weakens one of these needs explicit
    discussion first, not a silent workaround.
 5. **Run the tests** for whatever you touched (`cd backend && python -m pytest tests/... -m "not
    integration"` for backend work — see [`CODE_QUALITY.md`](CODE_QUALITY.md) for the full bar).

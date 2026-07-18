@@ -75,7 +75,7 @@ v0.1 stores diffs/logs/summaries **inline** (`core.artifacts.content`) — simpl
 ## 6. Security posture in the schema
 
 - **No secrets in the database.** Vault (Infisical / SOPS+age) holds credentials.
-- **Sandboxes only:** agents write code inside Docker containers on fresh branches; `core.repos` documents that real files are never touched — sandboxes clone from `git_url`.
+- **Isolated by default:** agents write code inside a scratch clone on a fresh branch, using each CLI's own native sandboxing; `core.repos` documents that real files are never touched — runs clone from `git_url` into a throwaway working copy, never the repo checked out on the host.
 
 ## 7. Operations
 
