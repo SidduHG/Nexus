@@ -1,23 +1,18 @@
-# Nexus data layer — Postgres (relational + pgvector + AGE), Redis, optional MinIO.
+# Nexus data layer — Postgres (relational + pgvector), Redis, optional MinIO.
 #
 # Usage (from the db/ directory):
 #   docker compose up -d                      # postgres + redis
-#   docker compose --profile artifacts up -d  # ... + MinIO for large artifacts (v0.2+)
+#   docker compose --profile artifacts up -d  # ... + MinIO for large artifacts
 #
 # Apply migrations after first start:
 #   ./apply-migrations.sh          (Git Bash / WSL)
 #   pwsh ./apply-migrations.ps1    (PowerShell)
-#
-# Temporal (v0.2+) ships its own compose stack and its own Postgres database;
-# run it separately (https://github.com/temporalio/docker-compose). Do NOT
-# point Temporal at the nexus database.
 
 services:
   postgres:
     build: ./postgres
     image: nexus-postgres:16
     container_name: nexus-postgres
-    command: postgres -c shared_preload_libraries=age
     environment:
       POSTGRES_USER: nexus
       POSTGRES_PASSWORD: ${NEXUS_DB_PASSWORD:-nexus_dev_only}

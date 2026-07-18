@@ -1,6 +1,6 @@
 # Nexus — Personal Agent OS
 
-Nexus is a self-hosted orchestration layer **above** AI coding agents (Claude Code, Codex, local models). You hand it work; it runs the work in sandboxes — in the background, overnight, or on its own triggers — verifies the results, and comes back to you with annotated diffs and one-tap approvals. Later versions add a repo knowledge graph, memory, and a Personal Mode (email/calendar/notes) on a private local model.
+Nexus is a self-hosted orchestration layer **above** AI coding agents (Claude Code, local models). You hand it a task; it runs the task in an isolated sandbox, verifies the result, and comes back to you with an annotated diff. Scope is deliberately narrow: v0.1 only — one task, one run (or a duel between two brains), no overnight loop, no personal-assistant mode.
 
 ## Distribution principle: personal-first, shareable-later
 
@@ -17,33 +17,29 @@ Every design choice should be checked against this principle: single-user assump
 | Doc | What it is |
 |---|---|
 | [`Research.md`](Research.md) | The research record: full architecture analysis, ToS reality of subscription-driven CLIs, tech-stack verdicts, risks. Background and rationale — not a build spec. |
-| [`context/nexus-v0.1-one-task-background.md`](context/nexus-v0.1-one-task-background.md) | **Build first.** One task → one/two brains → sandboxed run → live stream → verified, annotated diff (+ duel judge). |
-| [`context/nexus-v0.2-overnight-loop.md`](context/nexus-v0.2-overnight-loop.md) | Durable overnight loop: Temporal, queue, retries, Telegram approvals, always-on box, minimal quota governor. |
-| [`context/nexus-v0.3-repo-brain-and-triggers.md`](context/nexus-v0.3-repo-brain-and-triggers.md) | Repo knowledge graph (tree-sitter → AGE), memory, independent second-model reviewer, trigger engine, Langfuse. |
-| [`context/nexus-v0.4-personal-mode-and-hardening.md`](context/nexus-v0.4-personal-mode-and-hardening.md) | Personal Mode on a local model, full cost governor, eval harness, safety hardening, voice. |
+| [`context/nexus-v0.1-one-task-background.md`](context/nexus-v0.1-one-task-background.md) | **The whole build.** One task → one/two brains → sandboxed run → live stream → verified, annotated diff (+ duel judge). |
 | [`docs/database-architecture.md`](docs/database-architecture.md) | The data layer: which engines, why, every table's purpose, event contracts, security posture. |
 | [`db/`](db/README.md) | **Runnable:** docker-compose (Postgres+pgvector+AGE, Redis, optional MinIO) + staged SQL migrations + runbook. |
 
 ## For AI agents building Nexus
 
-- The version docs are **specs**: each ends with a Build Spec section (contracts, config, acceptance criteria) and a "Not in this version" list. The exclusions are binding — do not build ahead.
-- The database schema for each version already exists in `db/migrations/000N_*.sql`. Apply only up to the version you are building. Table comments in the migrations are part of the contract.
-- Invariants that hold across all versions:
+- The version doc is a **spec**: it ends with a Build Spec section (contracts, config, acceptance criteria) and a "Not in this version" list. The exclusions are binding — do not build ahead.
+- The database schema lives in `db/migrations/0001_core.sql`. Table comments in the migration are part of the contract.
+- Invariants:
   1. **Official CLIs as subprocesses only** — never reverse-engineer or repoint OAuth tokens, never call vendor APIs with subscription credentials.
   2. **Sandboxes only** — agents write code inside Docker containers on fresh branches; the owner's real working tree is never touched without explicit approval.
   3. **Independent verification** — the model that checks work is read-only and, when possible, different from the model that wrote it.
   4. **Human approval gates** for anything state-changing or outward-facing (push, PR, send), bound to exact params (`ops.approvals.params_hash`).
   5. **Append-only history** — run events and audit log are never updated or deleted.
-  6. **Developer/personal isolation** — personal data never enters developer prompts, and vice versa (enforced by scope columns + separate DB roles).
 
 ## Status
 
-Pre-implementation. Documents and data layer are complete; v0.1 build is next.
+Pre-implementation. Documents and data layer are complete; v0.1 build is next. **v0.1 is the entire scope of this project** — no overnight loop, repo knowledge graph, or Personal Mode are planned.
 
 ## Contributing
 
-Nexus is open to contribution. Work is tracked as GitHub Issues grouped by feature and milestone
-(`v0.1`-`v0.4`) — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to pick up an issue, the
+Nexus is open to contribution. Work is tracked as GitHub Issues grouped by feature under the
+`v0.1` milestone — see [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to pick up an issue, the
 development workflow, and commit/PR conventions, and [`CODE_QUALITY.md`](CODE_QUALITY.md) for the
 review bar. Participation is governed by [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). Only the
 maintainer merges to `main`.
