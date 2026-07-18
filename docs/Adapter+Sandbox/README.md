@@ -1,5 +1,12 @@
 # Day 2 — Adapter + Sandbox · Implementation Plans
 
+> **Historical record, partially superseded (2026-07-18):** Tasks 01-03 (adapter protocol, CLI
+> backends, Ollama backend) shipped as designed and are still exactly how the code works. Task
+> 04's `nexus-sandbox` Docker image was later **removed** — Nexus doesn't build its own container
+> runtime; Claude Code and Codex both ship native sandboxing (see
+> `context/nexus-v0.1-one-task-background.md`'s "Why start here" section). Kept here for history,
+> not as a description of the current architecture.
+
 > **For agentic workers:** each `NN-*.md` file in this folder is a standalone plan with
 > checkbox (`- [ ]`) steps. Implement them in order with
 > superpowers:subagent-driven-development or superpowers:executing-plans.

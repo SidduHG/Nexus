@@ -15,13 +15,13 @@ solo changes go through a PR. Don't ask for merge access; open a PR and it'll ge
 
 ## Project structure
 
-Nexus is built version-by-version, not feature-by-feature. Each version has a spec doc under
-[`context/`](context) (`nexus-v0.1-...md` through `v0.4`), and each spec ends with a **Build
-Spec** section (contracts, config, acceptance criteria) and a **"Not in this version"** list. The
-exclusions are binding: don't build v0.3 work while v0.1 is still open, and don't add scope a spec
-explicitly rules out.
+Nexus v0.1 is the entire project — there is no v0.2+ roadmap. The spec doc lives at
+[`context/nexus-v0.1-one-task-background.md`](context/nexus-v0.1-one-task-background.md), and ends
+with a **Build Spec** section (contracts, config, acceptance criteria) and a **"Not in this
+version"** list. The exclusions are binding: don't add scope the spec explicitly rules out (e.g.
+retry loops, scheduling, Telegram/notifications).
 
-The database schema for each version already exists in `db/migrations/000N_*.sql` — see
+The database schema already exists in `db/migrations/0001_core.sql` — see
 [`docs/database-architecture.md`](docs/database-architecture.md).
 
 ## Finding something to work on
@@ -29,7 +29,7 @@ The database schema for each version already exists in `db/migrations/000N_*.sql
 All work is tracked as GitHub Issues, one issue per feature grouping (not per tiny sub-task —
 see below). Each issue has:
 
-- A **milestone** (`v0.1` … `v0.4`) — which build phase it belongs to.
+- A **milestone** (`v0.1`) — which build phase it belongs to.
 - A **type label** — `type: feature` (new capability), `type: enhancement` (hardens/improves an
   existing capability), or `type: chore` (non-feature work: acceptance tests, tooling, docs).
 - A **Dependencies** section listing which other issues must land first. Respect this order —
@@ -62,10 +62,10 @@ focused PR is easier to review than juggling artificial issue boundaries.
 3. **Keep the diff surgical.** Touch only what the issue asks for. Don't refactor, reformat, or
    "improve" adjacent code you didn't need to change — see [`AGENTS.md`](AGENTS.md) for the full
    reasoning; it applies to human PRs the same as AI-generated ones.
-4. **Match the invariants.** Every version must preserve the six invariants in `README.md`:
-   official CLIs as subprocesses only, sandboxes only, independent verification, human approval
-   gates for state-changing actions, append-only history, developer/personal data isolation. A PR
-   that weakens one of these needs explicit discussion first, not a silent workaround.
+4. **Match the invariants.** Every change must preserve the invariants in `README.md`: official
+   CLIs as subprocesses only, isolated by default, independent verification, human approval gates
+   for state-changing actions, append-only history. A PR that weakens one of these needs explicit
+   discussion first, not a silent workaround.
 5. **Run the tests** for whatever you touched (`cd backend && python -m pytest tests/... -m "not
    integration"` for backend work — see [`CODE_QUALITY.md`](CODE_QUALITY.md) for the full bar).
 

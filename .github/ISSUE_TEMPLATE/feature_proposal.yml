@@ -1,13 +1,15 @@
 name: Feature proposal
-description: Propose new scope that isn't already on the WBS roadmap (v0.1-v0.4).
+description: Propose new scope that isn't already on the v0.1 WBS roadmap.
 labels: ["type: feature"]
 body:
   - type: markdown
     attributes:
       value: |
-        Most planned work is already tracked as an issue with a `v0.1`-`v0.4` milestone — check
-        open and closed issues first. This template is for genuinely new scope, not something
-        already covered.
+        Most planned work is already tracked as an issue under the `v0.1` milestone — check open
+        and closed issues first. This template is for genuinely new scope, not something already
+        covered. Nexus's scope is deliberately v0.1-only — no overnight loop, repo knowledge
+        graph, or Personal Mode are planned, so a proposal reviving that scope should explain why
+        it's worth reconsidering, not assume it's already on the roadmap.
   - type: textarea
     id: problem
     attributes:
