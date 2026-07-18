@@ -3,3 +3,8 @@ Nexus WBS.xlsx
 
 # nexus-build-loop resumable state — local, per-plan progress
 **/.loop-state.json
+
+# Python build/test artifacts
+**/*.egg-info/
+**/__pycache__/
+**/.pytest_cache/
